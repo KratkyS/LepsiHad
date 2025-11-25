@@ -6,14 +6,12 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BetterSnake
 {
-    // ✅ Rozhraní pro herní entity
     interface IEntity
     {
         void Update(GameTime gameTime);
         void Draw(SpriteBatch spriteBatch, Texture2D pixelTexture, int tileSize);
     }
 
-    // ✅ Třída pro jablko
     class Apple : IEntity
     {
         public Point Position { get; private set; }
@@ -34,13 +32,11 @@ namespace BetterSnake
 
         public void Update(GameTime gameTime)
         {
-            // apple logika se spouští z Game1, nic se zde nedeje
         }
 
         public void Draw(SpriteBatch spriteBatch, Texture2D pixelTexture, int tileSize)
         {
             if (!IsPlaced) return;
-
             Rectangle rect = new Rectangle(Position.X * tileSize, Position.Y * tileSize, tileSize, tileSize);
             spriteBatch.Draw(pixelTexture, rect, Color.Red);
         }
@@ -51,6 +47,7 @@ namespace BetterSnake
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Texture2D pixelTexture;
+        private SpriteFont font;
 
         int tileSize = 32;
         int screenWidth = 1920;
@@ -70,15 +67,16 @@ namespace BetterSnake
         bool gameStarted = false;
 
         double moveTimer = 0;
-        double moveInterval = 195;
+        double moveInterval = 185;
         readonly double minMoveInterval = 50;
         readonly double maxMoveInterval = 1000;
         readonly double moveStep = 20;
 
         KeyboardState prevKeyboardState;
-
         bool isGameOver = false;
-        int expandThreshold = 15; // počet dlaždic do rozšíření
+
+        int applesRemainingToUnlock = 5;
+        int appleStep = 5; // kolik jablek navíc pro další parcelu
 
         public Game1()
         {
@@ -124,9 +122,7 @@ namespace BetterSnake
             snake.Add(new Point(start.X - 2, start.Y));
             direction = new Point(1, 0);
 
-            // vytvoření apple
             apple = new Apple();
-
             gameStarted = false;
             prevKeyboardState = Keyboard.GetState();
 
@@ -138,6 +134,7 @@ namespace BetterSnake
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
             pixelTexture.SetData(new[] { Color.White });
+            font = Content.Load<SpriteFont>("Arial");
         }
 
         protected override void Update(GameTime gameTime)
@@ -163,7 +160,7 @@ namespace BetterSnake
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin();
 
-            // vykreslení gridu
+            // grid
             for (int y = 0; y < rows; y++)
                 for (int x = 0; x < cols; x++)
                 {
@@ -179,10 +176,10 @@ namespace BetterSnake
             for (int y = 0; y <= rows; y++)
                 _spriteBatch.Draw(pixelTexture, new Rectangle(0, y * tileSize, screenWidth, 1), gridLineColor);
 
-            // vykreslení apple přes IEntity
+            // apple
             apple.Draw(_spriteBatch, pixelTexture, tileSize);
 
-            // vykreslení hada
+            // had
             for (int i = 0; i < snake.Count; i++)
             {
                 Color c = (i == 0) ? Color.Yellow : Color.Green;
@@ -190,11 +187,25 @@ namespace BetterSnake
                 _spriteBatch.Draw(pixelTexture, r, c);
             }
 
+            // počet zbývajících jablek
+            if (nextGroupToEnable < totalGroups)
+            {
+                int groupId = nextGroupToEnable;
+                bool displayed = false;
+                for (int y = 0; y < rows && !displayed; y++)
+                    for (int x = 0; x < cols && !displayed; x++)
+                        if (groupIds[x, y] == groupId)
+                        {
+                            Vector2 pos = new Vector2(x * tileSize + 8, y * tileSize + 8);
+                            _spriteBatch.DrawString(font, applesRemainingToUnlock.ToString(), pos, Color.White);
+                            displayed = true;
+                        }
+            }
+
             _spriteBatch.End();
             base.Draw(gameTime);
         }
 
-        // ---------- logika ----------
         private void HandleInput()
         {
             KeyboardState ks = Keyboard.GetState();
@@ -222,7 +233,6 @@ namespace BetterSnake
 
         private void MoveSnake()
         {
-            // první pohyb → spawn apple
             if (!gameStarted)
             {
                 gameStarted = true;
@@ -247,10 +257,17 @@ namespace BetterSnake
             {
                 apple.IsPlaced = false;
                 SpawnApple();
-            }
 
-            if (snake.Count >= CountAllowedTiles() - expandThreshold && nextGroupToEnable < totalGroups)
-                EnableNextGroup();
+                if (nextGroupToEnable < totalGroups)
+                    applesRemainingToUnlock--;
+
+                if (applesRemainingToUnlock <= 0 && nextGroupToEnable < totalGroups)
+                {
+                    EnableNextGroup();
+                    // nyní zvyšujeme počet jablek postupně
+                    applesRemainingToUnlock = (nextGroupToEnable + 1) * appleStep;
+                }
+            }
         }
 
         private void SpawnApple()
@@ -287,21 +304,13 @@ namespace BetterSnake
             return Point.Zero;
         }
 
-        private int CountAllowedTiles()
-        {
-            int c = 0;
-            for (int y = 0; y < rows; y++)
-                for (int x = 0; x < cols; x++)
-                    if (grid[x, y] == 1) c++;
-            return c;
-        }
-
         private void EnableNextGroup()
         {
             int g = nextGroupToEnable;
             for (int y = 0; y < rows; y++)
                 for (int x = 0; x < cols; x++)
-                    if (groupIds[x, y] == g) grid[x, y] = 1;
+                    if (groupIds[x, y] == g)
+                        grid[x, y] = 1;
 
             nextGroupToEnable++;
         }
@@ -327,6 +336,8 @@ namespace BetterSnake
             apple.IsPlaced = false;
             gameStarted = false;
             moveTimer = 0;
+
+            applesRemainingToUnlock = appleStep; // první parcelu potřebuje 5 jablek
         }
     }
 }
