@@ -70,7 +70,7 @@ namespace BetterSnake
         bool gameStarted = false;
 
         double moveTimer = 0;
-        double moveInterval = 180;
+        double moveInterval = 195;
         readonly double minMoveInterval = 50;
         readonly double maxMoveInterval = 1000;
         readonly double moveStep = 20;
@@ -78,7 +78,7 @@ namespace BetterSnake
         KeyboardState prevKeyboardState;
 
         bool isGameOver = false;
-        int expandThreshold = 5; // počet dlaždic do rozšíření
+        int expandThreshold = 15; // počet dlaždic do rozšíření
 
         public Game1()
         {
