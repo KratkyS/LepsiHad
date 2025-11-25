@@ -17,7 +17,7 @@ namespace BetterSnake
     class Apple : IEntity
     {
         public Point Position { get; private set; }
-        public bool IsPlaced { get; private set; } = false;
+        public bool IsPlaced { get; set; } = false;
         private Random rnd = new Random();
 
         public void Spawn(List<Point> allowedPositions)
@@ -70,7 +70,7 @@ namespace BetterSnake
         bool gameStarted = false;
 
         double moveTimer = 0;
-        double moveInterval = 220;
+        double moveInterval = 180;
         readonly double minMoveInterval = 50;
         readonly double maxMoveInterval = 1000;
         readonly double moveStep = 20;
