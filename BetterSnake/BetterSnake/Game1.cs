@@ -59,6 +59,10 @@ namespace BetterSnake
         int groupSize = 5;
         int nextGroupToEnable = 0;
         int totalGroups;
+        int totalApplesCollected = 0;
+        int lastRunApples = 0;
+        bool lastRunRecorded = false;
+
 
         List<Point> snake;
         Point direction = new Point(1, 0);
@@ -201,6 +205,13 @@ namespace BetterSnake
                             displayed = true;
                         }
             }
+            string scoreText = "Jablka: " + totalApplesCollected;
+            Vector2 scorePos = new Vector2(screenWidth - font.MeasureString(scoreText).X - 20, 20);
+            _spriteBatch.DrawString(font, scoreText, scorePos, Color.White);
+
+            string lastText = "Minuly pokus: " + lastRunApples;
+            Vector2 lastPos = new Vector2(screenWidth - font.MeasureString(lastText).X - 20, 60);
+            _spriteBatch.DrawString(font, lastText, lastPos, Color.White);
 
             _spriteBatch.End();
             base.Draw(gameTime);
@@ -228,6 +239,7 @@ namespace BetterSnake
             if (!(nd.X == -direction.X && nd.Y == -direction.Y))
                 direction = nd;
 
+
             prevKeyboardState = ks;
         }
 
@@ -235,9 +247,11 @@ namespace BetterSnake
         {
             if (!gameStarted)
             {
+               
                 gameStarted = true;
                 if (!apple.IsPlaced)
                     SpawnApple();
+                    
             }
 
             Point head = snake[0];
@@ -255,6 +269,8 @@ namespace BetterSnake
             if (!ate) snake.RemoveAt(snake.Count - 1);
             else
             {
+                lastRunRecorded = false;
+                totalApplesCollected++;
                 apple.IsPlaced = false;
                 SpawnApple();
 
@@ -317,6 +333,10 @@ namespace BetterSnake
 
         private void ResetGame()
         {
+            if (lastRunRecorded == false)
+                lastRunApples = totalApplesCollected;
+                lastRunRecorded = true;
+            totalApplesCollected = 0;
             for (int y = 0; y < rows; y++)
                 for (int x = 0; x < cols; x++)
                     grid[x, y] = 0;
@@ -336,7 +356,7 @@ namespace BetterSnake
             apple.IsPlaced = false;
             gameStarted = false;
             moveTimer = 0;
-
+            
             applesRemainingToUnlock = 6; // první parcelu potřebuje 5 jablek
         }
     }
