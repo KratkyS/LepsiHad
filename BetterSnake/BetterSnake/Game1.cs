@@ -62,6 +62,8 @@ namespace BetterSnake
         int totalApplesCollected = 0;
         int lastRunApples = 0;
         bool lastRunRecorded = false;
+        int bestScore = 0;
+
 
 
         List<Point> snake;
@@ -71,7 +73,7 @@ namespace BetterSnake
         bool gameStarted = false;
 
         double moveTimer = 0;
-        double moveInterval = 170;
+        double moveInterval = 165;
         readonly double minMoveInterval = 50;
         readonly double maxMoveInterval = 1000;
         readonly double moveStep = 20;
@@ -79,8 +81,8 @@ namespace BetterSnake
         KeyboardState prevKeyboardState;
         bool isGameOver = false;
 
-        int applesRemainingToUnlock = 0;
-        int appleStep = 3; // kolik jablek navíc pro další parcelu
+        int applesRemainingToUnlock = 4;
+        int appleStep = 4; // kolik jablek navíc pro další parcelu
 
         public Game1()
         {
@@ -91,6 +93,7 @@ namespace BetterSnake
 
         protected override void Initialize()
         {
+             LoadBestScore();
             _graphics.PreferredBackBufferWidth = screenWidth;
             _graphics.PreferredBackBufferHeight = screenHeight;
             _graphics.ApplyChanges();
@@ -213,6 +216,11 @@ namespace BetterSnake
             Vector2 lastPos = new Vector2(screenWidth - font.MeasureString(lastText).X - 20, 60);
             _spriteBatch.DrawString(font, lastText, lastPos, Color.White);
 
+            string bestText = "Nejlepsi vysledek: " + bestScore;
+            Vector2 bestPos = new Vector2(screenWidth - font.MeasureString(bestText).X - 20, 100);
+            _spriteBatch.DrawString(font, bestText, bestPos, Color.Gold);
+
+
             _spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -297,6 +305,31 @@ namespace BetterSnake
             apple.Spawn(spots);
         }
 
+        private void LoadBestScore()
+        {
+            try
+            {
+                if (System.IO.File.Exists("bestscore.txt"))
+                {
+                    string txt = System.IO.File.ReadAllText("bestscore.txt");
+                    int val;
+                    if (int.TryParse(txt, out val))
+                        bestScore = val;
+                }
+            }
+            catch { }
+        }
+
+        private void SaveBestScore()
+        {
+            try
+            {
+                System.IO.File.WriteAllText("bestscore.txt", bestScore.ToString());
+            }
+            catch { }
+        }
+
+
         private bool IsInside(Point p) => p.X >= 0 && p.X < cols && p.Y >= 0 && p.Y < rows;
         private bool IsWalkable(Point p) => grid[p.X, p.Y] == 1;
         private bool IsSnakeBody(Point p)
@@ -333,9 +366,20 @@ namespace BetterSnake
 
         private void ResetGame()
         {
-            if (lastRunRecorded == false)
+            if (!lastRunRecorded)
+            {
                 lastRunApples = totalApplesCollected;
                 lastRunRecorded = true;
+
+                if (totalApplesCollected > bestScore)
+                {
+                    bestScore = totalApplesCollected;
+                    SaveBestScore();
+                }
+            }
+
+
+
             totalApplesCollected = 0;
             for (int y = 0; y < rows; y++)
                 for (int x = 0; x < cols; x++)
@@ -357,7 +401,7 @@ namespace BetterSnake
             gameStarted = false;
             moveTimer = 0;
             
-            applesRemainingToUnlock = 6; // první parcelu potřebuje 5 jablek
+            applesRemainingToUnlock = 8; // první parcelu potřebuje 5 jablek
         }
     }
 }
