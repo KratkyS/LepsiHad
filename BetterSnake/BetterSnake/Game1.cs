@@ -67,7 +67,7 @@ namespace BetterSnake
         bool gameStarted = false;
 
         double moveTimer = 0;
-        double moveInterval = 185;
+        double moveInterval = 170;
         readonly double minMoveInterval = 50;
         readonly double maxMoveInterval = 1000;
         readonly double moveStep = 20;
@@ -75,8 +75,8 @@ namespace BetterSnake
         KeyboardState prevKeyboardState;
         bool isGameOver = false;
 
-        int applesRemainingToUnlock = 5;
-        int appleStep = 5; // kolik jablek navíc pro další parcelu
+        int applesRemainingToUnlock = 0;
+        int appleStep = 3; // kolik jablek navíc pro další parcelu
 
         public Game1()
         {
@@ -337,7 +337,7 @@ namespace BetterSnake
             gameStarted = false;
             moveTimer = 0;
 
-            applesRemainingToUnlock = appleStep; // první parcelu potřebuje 5 jablek
+            applesRemainingToUnlock = 6; // první parcelu potřebuje 5 jablek
         }
     }
 }
