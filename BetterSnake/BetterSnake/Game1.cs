@@ -82,7 +82,7 @@ namespace BetterSnake
         bool isGameOver = false;
 
         int applesRemainingToUnlock = 4;
-        int appleStep = 4; // kolik jablek navíc pro další parcelu
+        int appleStep = 3; // kolik jablek navíc pro další parcelu
 
         public Game1()
         {
@@ -401,7 +401,7 @@ namespace BetterSnake
             gameStarted = false;
             moveTimer = 0;
             
-            applesRemainingToUnlock = 8; // první parcelu potřebuje 5 jablek
+            applesRemainingToUnlock = 6; // první parcelu potřebuje 5 jablek
         }
     }
 }
